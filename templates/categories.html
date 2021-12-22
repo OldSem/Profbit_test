@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+<div style="border: black">
+    <div style="float:left;width: 285px;border: black 1px">{% block left %}
+
+        {% for cat in categories %}
+            <a href="{% url 'shop:category' cat.pk %}">{{ cat }}</a>
+            <br>
+        {% endfor %}
+
+    {% endblock %}
+    </div>
+    <div style="float:right;border: black;">
+        <table>
+        <tr>
+            <th>name</th><th>price</th><th>status</th><th>remains</th>
+        </tr>
+        {% for product in products %}
+            <tr>
+         <td>{{ product.name }}</td><td>{{ product.price }}</td><td>{{ product.status }}</td><td>{{ product.remains }}</td>
+            </tr>
+        {% endfor %}
+
+        </table>
+    {% include 'pagination.html' with type=products page="products" page_obj=products%}
+    </div>
+
+</div>
+
+</body>
+</html>
