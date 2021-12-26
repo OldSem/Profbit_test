@@ -18,20 +18,73 @@
     </div>
     <div style="float:right;border: black;">
         <table>
+        <thead>
         <tr>
             <th>name</th><th>price</th><th>status</th><th>remains</th>
         </tr>
+        </thead>
+        <tbody>
         {% for product in products %}
+
             <tr>
          <td>{{ product.name }}</td><td>{{ product.price }}</td><td>{{ product.status }}</td><td>{{ product.remains }}</td>
             </tr>
         {% endfor %}
-
+        </tbody>
         </table>
     {% include 'pagination.html' with type=products page="products" page_obj=products%}
     </div>
 
 </div>
+<script>
+    function tableToJson(table) {
+    var data = [];
+    for (var i=1; i<table.rows.length; i++) {
+        data.push(table.rows[i].cells[0].innerHTML);
+    }
 
+    return data;
+
+}
+
+
+    window.addEventListener("load", function () {
+        var tabl = document.getElementsByTagName('table')[0];
+        var tbody = tabl.getElementsByTagName('tbody')[0];
+        var XHR = new XMLHttpRequest();
+        XHR.addEventListener("load", function(event) {
+            tabl.removeChild(tbody);
+            tbody.innerHTML = '';
+            var products = JSON.parse(event.target.responseText);
+            for (var i = 0; i < products.length; i++) {
+                var row = document.createElement('tr');
+                var name = document.createElement('td');
+                var price = document.createElement('td');
+                var status = document.createElement('td');
+                var remains = document.createElement('td');
+                name.innerHTML = products[i].name;
+                price.innerHTML = products[i].price;
+                status.innerHTML = products[i].status;
+                remains.innerHTML = products[i].remains;
+                row.appendChild(name);
+                row.appendChild(price);
+                row.appendChild(status);
+                row.appendChild(remains);
+                tbody.appendChild(row);
+              }
+            //alert(tbody.children.length);
+            tabl.appendChild(tbody);
+
+        })
+        XHR.addEventListener("error", function(event) {
+          alert('Oops! Something went wrong.');
+        });
+        XHR.open("POST", "/products/");
+        XHR.send(JSON.stringify(tableToJson(tabl)));
+
+
+    });
+
+</script>
 </body>
 </html>

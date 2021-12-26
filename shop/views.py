@@ -1,21 +1,23 @@
-from django.views.generic import DetailView
+import json
+from django.views.generic import DetailView, ListView, FormView
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import Http404
+from django.http import JsonResponse
+
+
 
 from .models import Category, Product
+from .forms import ProductsForm
 
 
-def paginator(qs, request, count):
-    paginator = Paginator(qs, count)
-    page = request.GET.get('page')
-    try:
-        obj = paginator.page(page)
-    except PageNotAnInteger:
-        obj = paginator.page(1)
-    except EmptyPage:
-        raise Http404("That page contains no results")
-    return obj
 
+class JSONFormView(FormView):
+    def get_form_kwargs(self):
+        kwargs = super(JSONFormView, self).get_form_kwargs()
+
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['data'] = self.request.data
+
+        return kwargs
 
 class CategoryView(DetailView):
     model = Category
@@ -30,4 +32,17 @@ class CategoryView(DetailView):
         context['products'] = paginator.get_page(page_number)
         return context
 
+
+class ProductView(FormView):
+    form_class = ProductsForm
+    template_name = 'categories.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update(data={'products':json.loads(self.request.body)})
+        return kwargs
+
+    def form_valid(self, form):
+        products = Product.objects.filter(name__in=form.data['products']).values()
+        return JsonResponse(list(products), safe=False)
 # Create your views here.
